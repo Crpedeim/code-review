@@ -1,0 +1,43 @@
+name: code-review-env
+description: >
+  AI Code Review environment with 6 tasks, 14 randomized code variants, and 117
+  planted issues spanning style, logic bugs, concurrency, security, API design,
+  and diff-based PR review. Multi-step interaction with progressive hints.
+  Replicates the technical core of CodeRabbit.
+version: "1.0.0"
+author: "Garvit"
+
+environment:
+  class: server.code_review_environment.CodeReviewEnvironment
+  action_model: models.ReviewAction
+  observation_model: models.ReviewObservation
+  state_model: models.ReviewState
+
+tasks:
+  - name: style_review
+    description: "PEP 8, naming, imports — 3 randomized variants"
+    difficulty: easy
+  - name: bug_hunt
+    description: "Logical bugs in algorithms/data structures/text processing — 3 variants"
+    difficulty: medium
+  - name: concurrency_review
+    description: "Race conditions, deadlocks, missing synchronization — 2 variants"
+    difficulty: medium-hard
+  - name: security_audit
+    description: "OWASP-style web vulnerabilities — 2 variants"
+    difficulty: hard
+  - name: api_design_review
+    description: "Cache bugs, SQL injection, design flaws — 2 variants"
+    difficulty: hard
+  - name: diff_review
+    description: "Review unified diffs for security regressions — 2 variants"
+    difficulty: medium-hard
+
+tags:
+  - openenv
+  - code-review
+  - security
+  - concurrency
+  - diff-review
+  - randomized
+  - python
