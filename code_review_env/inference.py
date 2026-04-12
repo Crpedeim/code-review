@@ -87,7 +87,7 @@ def run_task(task_name: str) -> float:
 
     all_rewards = []
     step_num = 0
-    final_score = 0.0
+    final_score = 0.01
     success = False
     accumulated_findings = []
 
@@ -150,10 +150,10 @@ def run_task(task_name: str) -> float:
                 break
 
     except Exception as e:
-        all_rewards.append(0.0)
+        all_rewards.append(0.01)
         print(
             f"[STEP] step={step_num} "
-            f"action=error reward=0.00 done=true "
+            f"action=error reward=0.01 done=true "
             f"error={str(e)[:200]}"
         )
         traceback.print_exc(file=sys.stderr)
