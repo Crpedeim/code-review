@@ -49,7 +49,7 @@ class CodeReviewEnvironment(Environment):
             code_snippet=task["code"],
             planted_issues=[dict(i) for i in task["issues"]],
             agent_findings=[],
-            current_score=0.0,
+            current_score=0.01,
             is_done=False,
             max_steps=self.MAX_STEPS,
         )
@@ -61,9 +61,9 @@ class CodeReviewEnvironment(Environment):
             filename=task["filename"],
             language="python",
             feedback=f"Submit your code review findings as a JSON array. You have up to {self.MAX_STEPS} steps to refine your review. Send DONE when finished. (Variant pool: {task['variant_count']} variants)",
-            score=0.0,
+            score=0.01,
             done=False,
-            reward=0.0,
+            reward=0.01,
         )
 
     def _parse_findings(self, raw: str) -> tuple:
