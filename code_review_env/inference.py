@@ -169,7 +169,8 @@ def run_task(task_name: str) -> float:
 
 
 def main():
-    task_names = ["style_review", "bug_hunt", "concurrency_review", "security_audit", "api_design_review", "diff_review"]
+    task_names = ["style_review", "bug_hunt", "concurrency_review", "security_audit", "api_design_review", "diff_review",
+        "dynamic_bug_hunt"]
     scores = {}
 
     for task_name in task_names:
