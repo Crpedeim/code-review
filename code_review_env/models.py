@@ -18,7 +18,7 @@ class ReviewObservation(Observation):
     filename: str = ""
     language: str = "python"
     feedback: str = ""
-    score: float = 0.0
+    score: float = 0.01
     last_action_error: Optional[str] = None
 
 
@@ -28,6 +28,6 @@ class ReviewState(State):
     code_snippet: str = ""
     planted_issues: list = []
     agent_findings: list = []
-    current_score: float = 0.0
+    current_score: float = 0.01
     is_done: bool = False
     max_steps: int = 3
