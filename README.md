@@ -120,6 +120,7 @@ The environment includes a robust test suite verifying mathematical boundaries a
 ```bash
 pip install pytest
 PYTHONPATH=. pytest tests/
+```
 
 ### API Endpoints
 `/` health check | `/reset` POST | `/step` POST | `/state` GET | `/ws` WebSocket
