@@ -293,25 +293,55 @@ def grade_review(
         f"Score: {score:.2f}.",
     ]
 
+
+
     if suggestion_bonus > 0:
         feedback_parts.append(f"Suggestion quality bonus: +{suggestion_bonus:.2f}.")
 
-    # Progressive hints in multi-step mode
+    # =================================================================
+    # ADAPTIVE DIFFICULTY SCALING (Dynamic Hints)
+    # =================================================================
+    percent_found = found_count / total_count if total_count > 0 else 1.0
+
+    # Determine Hint Verbosity (0 = none, 1 = vague, 2 = targeted, 3 = explicit)
+    if percent_found >= 0.8:
+        # Hard mode: Agent is doing well, no hand-holding
+        verbosity = 0
+    elif percent_found >= 0.4:
+        # Medium mode: Give general area/severity hints
+        verbosity = 1
+    else:
+        # Easy mode: Agent is struggling. Increase help as steps progress.
+        verbosity = min(3, step_number)
+
     if not missed:
         feedback_parts.append("Excellent — all issues identified!")
     elif step_number < max_steps:
         missed_severities = [m.get("severity", "unknown") for m in missed]
-        if "critical" in missed_severities:
-            feedback_parts.append("HINT: There are still critical-severity issues you haven't found.")
-        elif "high" in missed_severities:
-            feedback_parts.append("HINT: Some high-severity issues remain.")
-        else:
-            feedback_parts.append("HINT: A few lower-severity issues remain.")
-        if len(missed) >= 3:
-            lines = sorted(set(m.get("line", 0) for m in missed[:2]))
-            feedback_parts.append(f"HINT: Check around lines {', '.join(str(l) for l in lines)}.")
+
+        if verbosity == 0:
+            feedback_parts.append("HINT: You are very close. Review the code carefully for subtle edge cases.")
+
+        elif verbosity == 1:
+            if "critical" in missed_severities or "high" in missed_severities:
+                feedback_parts.append("HINT: You are missing high/critical severity issues.")
+            else:
+                feedback_parts.append("HINT: You are missing medium/low severity issues.")
+
+        elif verbosity >= 2:
+            # Provide specific line numbers
+            lines = sorted(set(m.get("line", 0) for m in missed[:verbosity]))
+            if "critical" in missed_severities:
+                feedback_parts.append("HINT: Critical issues remain.")
+            feedback_parts.append(f"HINT: Focus your review around lines {', '.join(str(l) for l in lines)}.")
+
+        if verbosity == 3 and step_number >= 3:
+            # Maximum help: Reveal the exact category/issue type if they are failing late in the episode
+            missed_labels = list(set([m.get("issue", "unknown") for m in missed[:2]]))
+            feedback_parts.append(f"HINT: Look specifically for these types of bugs: {', '.join(missed_labels)}")
     else:
+        # Final step: Reveal what they missed
         missed_labels = [m.get("issue", "unknown") for m in missed[:3]]
-        feedback_parts.append(f"Missed issues: {', '.join(missed_labels)}")
+        feedback_parts.append(f"Episode finished. Missed issues: {', '.join(missed_labels)}")
 
     return score, " ".join(feedback_parts)
