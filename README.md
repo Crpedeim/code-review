@@ -20,12 +20,12 @@ Code review is the highest-volume daily engineering task — every pull request 
 
 This environment fills that gap with:
 
-- **14 randomized code variants** — each `reset()` selects a random variant, so the agent never sees the same code twice. This prevents memorization and ensures genuine evaluation.
-- **6 tasks** spanning easy to hard across style, logic, concurrency, security, API design, and diff-based review
-- **117 planted issues** with ground truth across all variants
-- **Multi-step interaction** — agents submit partial reviews, get feedback with severity hints and line-number clues, and refine
-- **Red herrings** — correctly-written code mixed in to test false-positive discipline
-- **Diff-based PR review** — the closest task to how CodeRabbit actually operates in production
+- **14 static variants + INFINITE dynamic variants** — Uses an AST mutator engine to procedurally generate subtle logic and off-by-one errors in complex algorithms (A* Pathfinding, TTL Caches).
+- **7 tasks** spanning easy to expert across style, logic, concurrency, security, API design, diff-based review, and dynamic adversarial generation.
+- **Adaptive Difficulty** — Grader hints scale dynamically based on the agent's real-time accuracy, forcing high-performing agents to find bugs independently while supporting struggling agents.
+- **Multi-step interaction** — agents submit partial reviews, get feedback with severity hints and line-number clues, and refine.
+- **Red herrings** — correctly-written code mixed in to test false-positive discipline.
+- **Production-Ready Test Suite** — Comprehensive `pytest` coverage verifying mathematical bounds, state transitions, and edge-case exception handling.
 
 ## Action Space
 
@@ -62,6 +62,7 @@ class ReviewObservation(Observation):
 | `security_audit` | Hard | 2 | 8 | Flask REST API, file upload service |
 | `api_design_review` | Hard | 2 | 8 | User service, payment service |
 | `diff_review` | Med-Hard | 2 | 6-7 | Session manager PR, database migration PR |
+| `dynamic_bug_hunt` | Expert | Infinite | Random | Procedurally mutated algorithms (A*, Caches) |
 
 ### Variant Details
 
@@ -76,6 +77,8 @@ class ReviewObservation(Observation):
 **api_design_review** — V1: user service with cache invalidation bugs, SQL injection in search, CSV injection. V2: payment service with float money, missing status checks, double-charge vulnerability. Red herrings: correctly parameterized queries, proper activity tracking.
 
 **diff_review** — V1: session manager PR replacing secrets.token_urlsafe with predictable MD5, logging tokens. V2: migration helper PR adding shell command injection, removing rollback-on-error. Red herrings: legitimate remember-me feature, schema table extension.
+
+**dynamic_bug_hunt** — Uses Python's `ast.NodeTransformer` to procedurally inject bugs into complex, production-grade algorithms (A* Pathfinding, Thread-Safe TTL LRU Cache, Consistent Hashing Ring). Randomly mutates comparison operators (`<` to `<=`), None checks (`is` to `==`), and binary operations (`+` to `-`) at runtime, guaranteeing the agent never sees the same code twice.
 
 ## Reward Design
 
@@ -112,6 +115,12 @@ export MODEL_NAME=gpt-4.1-mini
 python inference.py
 ```
 
+### Running the Test Suite
+The environment includes a robust test suite verifying mathematical boundaries and grader logic.
+```bash
+pip install pytest
+PYTHONPATH=. pytest tests/
+
 ### API Endpoints
 `/` health check | `/reset` POST | `/step` POST | `/state` GET | `/ws` WebSocket
 
@@ -141,6 +150,7 @@ code-review-env/
 │   └── code_review_environment.py        # Multi-step engine + random variants
 ├── tasks/
 │   ├── __init__.py                       # Registry, Grader, & Adaptive Hint Engine
+│   ├── mutator.py
 │   └── variants/
 │       ├── style_variants.py             # 3 variants (47 issues)
 │       ├── bug_variants.py               # 3 variants (12 issues)
@@ -148,6 +158,7 @@ code-review-env/
 │       ├── security_variants.py          # 2 variants (16 issues)
 │       ├── api_variants.py               # 2 variants (16 issues)
 │       └── diff_variants.py              # 2 variants (13 issues)
+|       ├── dynamic_variants.py
 └── tests/
     ├── test_grader.py                    # Mathematical bounds & adaptive hint testing
     └── test_environment.py               # State transitions & exception handling checks
