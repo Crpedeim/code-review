@@ -24,6 +24,9 @@ from tasks.variants.concurrency_variants import VARIANTS as CONCURRENCY_VARIANTS
 from tasks.variants.security_variants import VARIANTS as SECURITY_VARIANTS
 from tasks.variants.api_variants import VARIANTS as API_VARIANTS
 from tasks.variants.diff_variants import VARIANTS as DIFF_VARIANTS
+# from tasks.mutator import generate_buggy_code
+# from tasks.variants.dynamic_variants import CLEAN_VARIANTS
+
 
 
 # ═══════════════════════════════════════════════
@@ -91,6 +94,7 @@ TASK_DESCRIPTIONS = {
         '"line" (approximate line number in the diff), "issue" (short snake_case label), '
         '"severity" (low/medium/high/critical), and "suggestion" (how to fix it).'
     ),
+    "dynamic_bug_hunt" : ("Review this complex algorithm for logical bugs, operator mistakes, and off-by-one errors. The bugs are procedurally generated via AST mutation."),
 }
 
 TASK_DIFFICULTIES = {
@@ -100,6 +104,7 @@ TASK_DIFFICULTIES = {
     "security_audit": "hard",
     "api_design_review": "hard",
     "diff_review": "medium-hard",
+    "dynamic_bug_hunt": "expert",
 }
 
 TASK_VARIANTS = {
@@ -109,18 +114,32 @@ TASK_VARIANTS = {
     "security_audit": SECURITY_VARIANTS,
     "api_design_review": API_VARIANTS,
     "diff_review": DIFF_VARIANTS,
+    "dynamic_bug_hunt": [{"code": "# Generated dynamically", "filename": "core_algorithm.py", "issues": []}],
+
 }
 
 
 def get_task(task_name: str, variant_index: int = None) -> dict:
-    """
-    Get a task configuration, optionally with a specific variant.
-
-    If variant_index is None, a random variant is selected.
-    Returns a dict with: description, code, filename, issues, difficulty.
-    """
+    """Get a task configuration, optionally with a specific variant."""
     if task_name not in TASK_VARIANTS:
         raise ValueError(f"Unknown task: {task_name}. Available: {list(TASK_VARIANTS.keys())}")
+
+    if task_name == "dynamic_bug_hunt":
+        # import random
+        from tasks.variants.dynamic_variants import CLEAN_VARIANTS
+        from tasks.mutator import generate_buggy_code
+        
+        clean_code = random.choice(CLEAN_VARIANTS)
+        buggy_code, planted_issues = generate_buggy_code(clean_code, probability=0.5)
+        
+        return {
+            "description": TASK_DESCRIPTIONS[task_name],
+            "code": buggy_code,
+            "filename": "core_algorithm.py",
+            "issues": planted_issues,
+            "difficulty": TASK_DIFFICULTIES[task_name],
+            "variant_count": "Infinite",
+        }
 
     variants = TASK_VARIANTS[task_name]
 
