@@ -85,7 +85,14 @@ class ReviewObservation(Observation):
 
 **False positive penalty:** -0.5 per unmatched finding
 
-**Progressive hints:** Feedback reveals missed severity categories and approximate line locations
+**Adaptive Difficulty & Dynamic Hint Verbosity Matrix**
+Rather than providing static hints, the environment shapes the agent's behavior by analyzing its accuracy in real-time. This prevents "lazy agent" behavior (where an LLM outputs nothing just to get line-number hints) and mimics realistic senior-to-junior code review feedback.
+
+**Hard Mode (Verbosity 0)**: If the agent finds >80% of issues, it is doing well. The grader provides zero specific hints, forcing the agent to find the last subtle edge cases on its own.
+
+**Medium Mode (Verbosity 1)**: If the agent finds >40% of issues, it receives general severity hints (e.g., "You are missing high/critical severity issues").
+
+**Easy Mode (Verbosity 2-3)**: If the agent is struggling (<40%), the environment scales assistance alongside the step count. It progressively reveals approximate line numbers, and eventually exact issue categories, preventing the agent from getting completely stuck.
 
 **Score:** `max(0.01, min(0.99, (earned + bonus - penalties) / total_possible))`
 
@@ -126,19 +133,22 @@ With `gpt-4.1-mini` (multi-step, 3 iterations):
 ```
 code-review-env/
 ├── inference.py                          # Multi-step inference (6 tasks)
-├── models.py                             # Pydantic models
+├── models.py                             # Pydantic models with strict defaults
 ├── openenv.yaml                          # OpenEnv metadata
 ├── Dockerfile / pyproject.toml / uv.lock
 ├── server/
 │   ├── app.py                            # FastAPI entry point
 │   └── code_review_environment.py        # Multi-step engine + random variants
-└── tasks/
-    ├── __init__.py                       # Registry + grader
-    └── variants/
-        ├── style_variants.py             # 3 variants (47 issues)
-        ├── bug_variants.py               # 3 variants (12 issues)
-        ├── concurrency_variants.py       # 2 variants (13 issues)
-        ├── security_variants.py          # 2 variants (16 issues)
-        ├── api_variants.py               # 2 variants (16 issues)
-        └── diff_variants.py              # 2 variants (13 issues)
+├── tasks/
+│   ├── __init__.py                       # Registry, Grader, & Adaptive Hint Engine
+│   └── variants/
+│       ├── style_variants.py             # 3 variants (47 issues)
+│       ├── bug_variants.py               # 3 variants (12 issues)
+│       ├── concurrency_variants.py       # 2 variants (13 issues)
+│       ├── security_variants.py          # 2 variants (16 issues)
+│       ├── api_variants.py               # 2 variants (16 issues)
+│       └── diff_variants.py              # 2 variants (13 issues)
+└── tests/
+    ├── test_grader.py                    # Mathematical bounds & adaptive hint testing
+    └── test_environment.py               # State transitions & exception handling checks
 ```
