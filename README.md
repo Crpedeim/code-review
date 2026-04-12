@@ -139,7 +139,7 @@ With `gpt-4.1-mini` (multi-step, 3 iterations):
 
 ## Project Structure
 
-```
+``` text
 code-review-env/
 ├── inference.py                          # Multi-step inference (6 tasks)
 ├── models.py                             # Pydantic models with strict defaults
@@ -161,5 +161,6 @@ code-review-env/
 |       ├── dynamic_variants.py
 └── tests/
     ├── test_grader.py                    # Mathematical bounds & adaptive hint testing
-    └── test_environment.py               # State transitions & exception handling checks
-```
+    └── test_environment.py           # State transitions & exception handling checks
+
+``` text
