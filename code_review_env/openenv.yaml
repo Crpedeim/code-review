@@ -32,6 +32,9 @@ tasks:
   - name: diff_review
     description: "Review unified diffs for security regressions — 2 variants"
     difficulty: medium-hard
+  - name: dynamic_bug_hunt
+    description: "AST-mutated dynamic logic bugs in complex algorithms — infinite variants"
+    difficulty: expert
 
 tags:
   - openenv
